@@ -217,6 +217,30 @@ public class PropertiesController : ControllerBase
         await _db.SaveChangesAsync();
         return NoContent();
     }
+     private static PropertyResponseDto MapToDto(Property p) => new()
+    {
+        Id = p.Id,
+        LandlordId = p.LandlordId,
+        LandlordName = p.Landlord?.FullName ?? "",
+        Title = p.Title,
+        Description = p.Description,
+        Price = p.Price,
+        Location = p.Location,
+        PropertyType = p.PropertyType.ToString(),
+        HasParking = p.HasParking,
+        HasElevator = p.HasElevator,
+        IsFurnished = p.IsFurnished,
+        RentalStatus = p.RentalStatus.ToString(),
+        ApprovalStatus = p.ApprovalStatus.ToString(),
+        Bedrooms = p.Bedrooms,
+        Bathrooms = p.Bathrooms,
+        AreaSqFt = p.AreaSqFt,
+        CreatedAt = p.CreatedAt,
+        ImageUrls = p.Images?.Select(i => i.ImageUrl).ToList() ?? new(),
+        AverageRating = p.Reviews?.Any() == true ? p.Reviews.Average(r => r.Rating) : 0,
+        ReviewCount = p.Reviews?.Count ?? 0
+    };
+
 
 
 
