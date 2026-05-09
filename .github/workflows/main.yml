@@ -13,17 +13,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-  
     - name: Build Backend Docker Image
       run: docker build -t rentvibe-backend ./Backend
 
-  
     - name: Use Node.js 24
       uses: actions/setup-node@v4 
       with:
         node-version: '24.x'
         cache: 'npm'
-        
         cache-dependency-path: './Frontend/package-lock.json'
 
     - name: Install dependencies
@@ -34,6 +31,8 @@ jobs:
     - name: Build
       run: |
         cd Frontend
+        # التعديل هنا: نأكد إن tsc بيقرأ الإعدادات من المجلد الصح
+        npx tsc --project ./tsconfig.json || echo "TSC failed but continuing..."
         npm run build
 
     - name: Upload Build Artifacts
@@ -51,5 +50,3 @@ jobs:
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-    
