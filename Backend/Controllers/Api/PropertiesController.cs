@@ -194,7 +194,29 @@ public class PropertiesController : ControllerBase
         return Ok(new { imageUrls = urls });
     }
 
+    
+    [HttpDelete("{propertyId:int}/images")]
+    [Authorize(Policy = "LandlordOnly")]
+    public async Task<IActionResult> DeleteImage(int propertyId, [FromQuery] string imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return BadRequest(new { message = "imageUrl is required." });
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var image = await _db.PropertyImages
+            .Include(i => i.Property)
+            .FirstOrDefaultAsync(i => i.PropertyId == propertyId && i.ImageUrl == imageUrl && i.Property.LandlordId == userId);
+
+        if (image is null) return NotFound();
+
+        var filePath = Path.Combine(_env.WebRootPath ?? "wwwroot", image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
+
+        _db.PropertyImages.Remove(image);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
 
 
 
