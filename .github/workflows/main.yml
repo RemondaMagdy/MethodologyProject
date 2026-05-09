@@ -1,0 +1,55 @@
+name: Full Stack Build & Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+  
+    - name: Build Backend Docker Image
+      run: docker build -t rentvibe-backend ./Backend
+
+  
+    - name: Use Node.js 24
+      uses: actions/setup-node@v4 
+      with:
+        node-version: '24.x'
+        cache: 'npm'
+        
+        cache-dependency-path: './Frontend/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        cd Frontend
+        npm install
+
+    - name: Build
+      run: |
+        cd Frontend
+        npm run build
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: production-files
+        path: Frontend/dist/
+    
+    - name: Deploy to Netlify
+      uses: nwtgck/actions-netlify@v3.0
+      with:
+        publish-dir: './Frontend/dist'
+        production-branch: master
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+    
